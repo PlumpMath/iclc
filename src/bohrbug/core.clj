@@ -27,8 +27,22 @@
         drum (+ sqr (* env filt))]
         (compander drum drum 0.2 1 0.1 0.01 0.01)
         ))
+(swap! live-pats assoc kickA [1 0 0 0])
 
- ; c-hat
+(definst snareA [freq 400 dur 0.40 width 0.5 pan 0.5 amp -1.0]
+  (let [freq-env (* freq (env-gen (perc -0.4 (* 0.24 dur))))
+        env (env-gen (perc 0.006 dur) 1 1 0 1 FREE)
+        noise (pink-noise)
+        sqr (* (env-gen (perc 0 0.04)) (pulse (* 2.9 freq) width))
+        src (c-osc freq-env)
+        src2 (lf-tri freq-env)
+        filt (glitch-rhpf (+ sqr noise src src2) 400)
+        clp (clip2 filt 0.6)
+        drum (+ sqr (* env clp))]
+        (compander drum drum 0.4 1 0.02 0.01 0.01)
+        ))
+
+
 
 (definst c-hat [amp 0.7 t 0.03]
   (let [env (env-gen (perc 0.001 t) 1 1 0 1 FREE)
@@ -112,6 +126,14 @@
  (def +c {:carrier 1174.66})
  (def +d {:carrier 1244.51})
 
+(def pats {
+           c-hat  [0 0 0 0]
+           snareA [0 0 0 0]
+           kickA  [0 0 0 0]
+           fmchord [0]
+           fmtones   [0]
+
+           })
 ;sequencer
 (defn flatten1
 
@@ -141,5 +163,6 @@
        (apply-by new-t #'live-sequencer [new-t sep-t live-patterns (inc beat)]))))
 
 (live-sequencer (now) 100 live-pats)
+
 (def metro (metronome 150))
-(metro 150)
+(stop)
