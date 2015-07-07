@@ -1,6 +1,6 @@
 (ns bohrbug.core
 (:require [iclc.core :refer :all])
-  (:use [overtone.live]
+(:use   [overtone.core]
         [overtone.inst.drum]
         [overtone.inst.io]
         [overtone.inst.synth]
@@ -9,15 +9,17 @@
         [overtone.osc.dyn-vars]
         ))
 
+
+
+
 (def bus1 (audio-bus))
 (def bus2 (audio-bus))
 (def bus3 (audio-bus))
 (def bus4 (audio-bus))
 (def bus5 (audio-bus))
 
-; kickA
 
-(definst kickA [freq 105 dur 1.2 width 0.5 amp -20 out-bus 3]
+(definst kickA [freq 105 dur 1.2 width 0.5 amp -20 out-bus 0]
   (let [freq-env (* freq (env-gen (perc 0.02 (* 0.49 dur))))
         env (env-gen (perc 0.019 dur) 1 1 0 1 FREE)
         sqr (* (env-gen (perc 0 0.0800)) (pulse (* 2 freq) width))
@@ -27,21 +29,29 @@
         drum (+ sqr (* env filt))]
         (compander drum drum 0.2 1 0.1 0.01 0.01)
         ))
-(swap! live-pats assoc kickA [1 0 0 0])
 
-(definst snareA [freq 400 dur 0.40 width 0.5 pan 0.5 amp -1.0]
+
+
+
+
+
+(definst snareA [freq 200 dur 0.20 width 0.5 pan 0.5 amp -1.0]
   (let [freq-env (* freq (env-gen (perc -0.4 (* 0.24 dur))))
         env (env-gen (perc 0.006 dur) 1 1 0 1 FREE)
-        noise (pink-noise)
+        noise (white-noise)
         sqr (* (env-gen (perc 0 0.04)) (pulse (* 2.9 freq) width))
-        src (c-osc freq-env)
-        src2 (lf-tri freq-env)
-        filt (glitch-rhpf (+ sqr noise src src2) 400)
+        src (sin-osc freq-env)
+        src2 (sin-osc freq-env)
+        filt (rlpf (+ sqr noise src src2) 300 2.6)
         clp (clip2 filt 0.6)
-        drum (+ sqr (* env clp))]
+        drum (+ sqr (* env clp))
+        _ (tap:kr :src 60 src
+           )
+        ]
         (compander drum drum 0.4 1 0.02 0.01 0.01)
-        ))
+    ))
 
+;(swap! live-pats assoc snareA [0])
 
 
 (definst c-hat [amp 0.7 t 0.03]
@@ -51,7 +61,15 @@
              filt (rhpf  (+ sqr noise) 300 0.5)
        ]
              (* amp env filt)
-             ))
+    ))
+
+
+
+
+
+
+
+
 
 (defsynth fmchord [carrier 440 divisor 4.0 depth 2.0 out-bus 0]
   (let [modulator (/ carrier divisor)
@@ -63,21 +81,57 @@
                                       (* mod-env (* carrier depth) (sin-osc modulator)))))))
     ))
 
-; ___  __  __   _____
-;| __||  \/  | |_   _|___  _ _   ___  ___
-;| _| | |\/| |   | | / _ \| ' \ / -_ (_-<
-;|_|  |_|  |_|   |_| \___/|_||_|\___|/__/
 
 
-(defsynth fmtones [carrier 440 divisor 8.0 depth 8.0 out-bus 1]
+(defsynth chordreverb [mix 0.5 room 0.6 damp 0.1]
+  (out 0 (free-verb (in-feedback bus2 2) mix room damp)))
+
+(def chordreverb-ctrl (chordreverb))
+
+
+(defsynth fmtones [carrier 440 divisor 8.0 depth 8.0 out-bus 0]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
         amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
-        filt (glitch-rhpf:ar (+ carrier modulator ) 500 2.6)
+        filt (lpf (+ carrier modulator ) 100)
              ]
-      (out bus1 (pan2 (* 0.60 amp-env
+      (out out-bus (pan2 (* 0.60 amp-env
                           (lf-saw (+ carrier
                                      (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
+
+
+
+
+;  pulse, p-sin-grain, v-osc (clean), lf-par, var-saw
+;  Chaos  ()
+;  Line   (amp-comp, amp-comp-a, k2a, line )
+;  Random (rand-seed, lonrenz-trig )
+;  Noise  (lf-noise, hasher , mantissa-mask)
+
+;; (fmtones :depth 8.0)
+;; (fmtones :inst-volume 8.0)
+
+;
+;
+
+
+
+
+
+(def pats {
+           c-hat  [0 0 0 0 0 0]
+           snareA [0 0 0 0 0 0 0 0]
+           kickA  [ 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+           fmchord [0]
+           fmtones   [0]
+
+
+           })
+
+
+
+
+
 
 ;kick control
 (def q {:amp 0.5 :dur 1.0})
@@ -115,8 +169,7 @@
  (def h {:carrier 783.99
          :depth 9.0
          :mix 0.5
-         }
-   )
+         })
  (def i {:carrier 830.61})
  (def j {:carrier 880.00})
  (def k {:carrier 923.33})
@@ -126,14 +179,9 @@
  (def +c {:carrier 1174.66})
  (def +d {:carrier 1244.51})
 
-(def pats {
-           c-hat  [0 0 0 0]
-           snareA [0 0 0 0]
-           kickA  [0 0 0 0]
-           fmchord [0]
-           fmtones   [0]
 
-           })
+
+
 ;sequencer
 (defn flatten1
 
@@ -165,4 +213,31 @@
 (live-sequencer (now) 100 live-pats)
 
 (def metro (metronome 150))
-(stop)
+(metro 150)
+
+(swap! live-pats assoc kickA [1 0 0 0])
+
+
+
+
+
+(midi-connected-devices)
+(midi-connected-receivers)
+
+(inst-volume! kickA 1.5)
+
+;(inst-volume! c-hat 0.75)
+;(inst-volume! snareA 1.00)
+
+(inst-pan! c-hat 0.5)
+
+
+
+
+
+;(fx-freeverb 0 0.5 0.9 0.5)
+;(fx-freeverb 1 0.5 0.9 0.5)
+;; (fx-bitcrusher 0.04)
+;(fx-limiter)
+
+;(kill fx-limiter)
