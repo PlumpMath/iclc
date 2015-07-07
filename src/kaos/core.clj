@@ -1,6 +1,6 @@
-(ns kaos.core)
+(ns kaos.core
+  (:use [clojure.core.match :only [match]])
+  (:require [polynome.core :as poly])
+)
 
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(def m (poly/init "/dev/tty.usbserial-m128-121"))
