@@ -1,6 +1,8 @@
-(ns iclc.core)
+(ns iclc.core
+  (:use [overtone.core])
+  (:require [quil.core :as q]
+            [quil.middleware :as m]
+            [bohrbugcore.clj :as b]
+            [kaoscore.clj :as k])
 
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+  )
