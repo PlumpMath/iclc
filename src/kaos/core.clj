@@ -1,4 +1,4 @@
-(ns iclc.core)
+(ns kaos.core)
 
 (defn foo
   "I don't do a whole lot."

@@ -2,7 +2,7 @@
   (:use [overtone.core])
   (:require [quil.core :as q]
             [quil.middleware :as m]
-            [bohrbugcore.clj :as b]
-            [kaoscore.clj :as k])
+            [bohrbug.core :as b]
+            [kaos.core :as k])
 
   )
