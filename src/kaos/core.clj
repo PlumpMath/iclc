@@ -14,7 +14,7 @@
 ; |_| |_| |_|\___/|_| |_|\___/|_| |_| |_|\___|
 
 
-(defonce m (poly/init "/dev/tty.usbserial-m128-121"))
+;;(defonce m (poly/init "/dev/tty.usbserial-m128-121"))
 
 
 (def width 1440)
