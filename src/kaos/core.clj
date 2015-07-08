@@ -1,7 +1,7 @@
-(ns kaos.core
+(ns iclc.core
   (:require [quil.core :as q]
             [quil.middleware :as m]
-            [iclc.core :refer :all])
+            )
   (:use [clojure.core.match :only [match]])
   (:require [polynome.core :as poly]))
 
@@ -29,6 +29,7 @@
 )
 (defn update [state]
   {
+  :fm @(:left fmtonestaps)
   :mod16 (mod16)
    }
   ;; (updateM)
@@ -39,7 +40,7 @@
 (defn draw [state]
   (q/background 255 255 0)
   (q/with-translation [ (+ 100 (* 10 (mod16))) 100 0]
-    (q/box 100))
+    (q/box (* (:fm state)  100)))
  )
 
 (q/defsketch halic

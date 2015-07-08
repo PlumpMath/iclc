@@ -9,3 +9,11 @@ pom.xml.asc
 /.nrepl-port
 .hgignore
 .hg/
+
+.#project.clj
+
+.#project.clj
+
+src/iclc/.#core.clj
+
+src/kaos/.#live.clj

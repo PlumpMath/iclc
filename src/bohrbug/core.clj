@@ -1,22 +1,46 @@
-(ns bohrbug.core
-(:require [iclc.core :refer :all])
-(:use   [overtone.core]
-        [overtone.inst.drum]
-        [overtone.inst.io]
-        [overtone.inst.synth]
-        [overtone.osc.util]
-        [overtone.osc.peer]
-        [overtone.osc.dyn-vars]
-        ))
+(ns iclc.core
+  (:require overtone.core
+            overtone.inst.drum
+            overtone.inst.io
+            overtone.inst.synth
+            overtone.osc.util
+            overtone.osc.peer
+            overtone.osc.dyn-vars
+            ))
+
+
+;; We use the defonce construct to avoid new buses being created and
+;; assigned accidentally, if the forms get re-evaluated.
+(defonce bus1 (audio-bus))
+(defonce bus2 (audio-bus))
+(defonce bus3 (audio-bus))
+(defonce bus4 (audio-bus)) ;;fmtones
+(defonce bus5 (audio-bus))
 
 
 
 
-(def bus1 (audio-bus))
-(def bus2 (audio-bus))
-(def bus3 (audio-bus))
-(def bus4 (audio-bus))
-(def bus5 (audio-bus))
+
+;; Define a synth we can use to tap into the stereo out.
+(defsynth tapper
+  "Tap into a stereo bus. Provides 3 taps: left, right, and phase."
+  [bus 0]
+  (let [source (in bus 2)
+        left (select 0 source)
+        right (select 1 source)]
+    (tap :left 10 left)
+    (tap :right 10 right)
+    (tap :phase 10 (- left right))))
+
+
+(def fmtonestaps (:taps (tapper 0)))
+@(:left fmtonestaps )
+@(:right fmtonestaps )
+@(:phase fmtonestaps )
+
+
+
+
 
 
 (definst kickA [freq 105 dur 1.2 width 0.5 amp -20 out-bus 0]
@@ -35,6 +59,8 @@
 
 
 
+
+
 (definst snareA [freq 200 dur 0.20 width 0.5 pan 0.5 amp -1.0]
   (let [freq-env (* freq (env-gen (perc -0.4 (* 0.24 dur))))
         env (env-gen (perc 0.006 dur) 1 1 0 1 FREE)
@@ -42,17 +68,16 @@
         sqr (* (env-gen (perc 0 0.04)) (pulse (* 2.9 freq) width))
         src (sin-osc freq-env)
         src2 (sin-osc freq-env)
-        filt (rlpf (+ sqr noise src src2) 300 2.6)
+        filt (glitch-rhpf (+ sqr noise src src2) 300 2.6)
         clp (clip2 filt 0.6)
         drum (+ sqr (* env clp))
-        _ (tap:kr :src 60 src
-           )
+
         ]
         (compander drum drum 0.4 1 0.02 0.01 0.01)
     ))
 
-;(swap! live-pats assoc snareA [0])
-
+;;(swap! live-pats assoc snareA [0 0 0 0])
+;;(swap! live-pats assoc fmtones [0 0 1 1 1 0 0 1 0 0 0 0 0 0 1 0])
 
 (definst c-hat [amp 0.7 t 0.03]
   (let [env (env-gen (perc 0.001 t) 1 1 0 1 FREE)
@@ -89,7 +114,7 @@
 (def chordreverb-ctrl (chordreverb))
 
 
-(defsynth fmtones [carrier 440 divisor 8.0 depth 8.0 out-bus 0]
+(defsynth fmtones [carrier 440 divisor 8.0 depth 8.0 out-bus bus4]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
         amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
@@ -215,7 +240,7 @@
 (def metro (metronome 150))
 (metro 150)
 
-(swap! live-pats assoc kickA [1 0 0 0])
+(swap! live-pats assoc fmtones [1 0 0 0 0 0 0 0 0 0 0 0])
 
 
 
@@ -231,7 +256,11 @@
 
 (inst-pan! c-hat 0.5)
 
+;;(stop)
 
+
+(swap! live-pats assoc snareA [0 0 0 1])
+;;(swap! live-pats assoc fmtones [0 0 1 1 1 0 0 1 0 0 0 0 0 0 1 0])
 
 
 

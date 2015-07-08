@@ -11,8 +11,8 @@
 
 
 ;; 1 - connect to supercollider
-(defonce superServer ( connect-external-server superServerIP  superServerPort))
 
+( connect-external-server superServerIP  superServerPort)
 
 
 ;; 2 - define & start central bpm-counter
