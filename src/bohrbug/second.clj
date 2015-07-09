@@ -1,7 +1,7 @@
 (ns iclc.core
   (:require overtone.core
             overtone.inst.drum
-            overtone.inst.io
+
             overtone.inst.synth
             overtone.osc.util
             overtone.osc.peer
@@ -17,7 +17,7 @@
 (defonce bus4 (audio-bus)) ;;fmtones
 (defonce bus5 (audio-bus))
 
-
+(midi-connected-divices)
 
 
 
@@ -54,12 +54,13 @@
         (compander drum drum 0.2 1 0.1 0.01 0.01)
         ))
 
+(swap! live-pats assoc kickA [1 0 0 0])
 
+(def kickdisto (inst-fx! kickA fx-distortion2))
+    (ctl kickdisto :amount 0.70)
+(clear-fx kickA)
 
-
-
-
-(definst snareA [freq 200 dur 0.20 width 0.5 pan 0.5 amp -1.0 out-bus 0]
+(definst snareA [freq 200 dur 0.20 width 0.5 pan 0.5 amp -1.0 out-bus 2]
   (let [freq-env (* freq (env-gen (perc -0.4 (* 0.24 dur))))
         env (env-gen (perc 0.006 dur) 1 1 0 1 FREE)
         noise (white-noise)
@@ -76,7 +77,7 @@
 
 ;>>>>>>> Stashed changes
 
-(definst c-hat [amp 0.7 t 0.03 out-bus 0]
+(definst c-hat [amp 0.7 t 0.03 out-bus 3]
   (let [env (env-gen (perc 0.001 t) 1 1 0 1 FREE)
              noise (white-noise)
              sqr (* (env-gen (perc 0.07 0.04)) (pulse 880 0.8))
@@ -85,9 +86,9 @@
              (* amp env filt)
     ))
 
+(stop)
 
-
-(defsynth fmchord [carrier 440 divisor 4.0 depth 2.0 out-bus 6]
+(defsynth fmchord [carrier 440 divisor 4.0 depth 2.0 out-bus 5]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin 1.9 3.8 -2.8))
         amp-env (env-gen (lin 1 0 4.0 1) :action FREE)
@@ -115,7 +116,21 @@
                           (lf-saw (+ carrier
                                      (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
 
+(swap! live-pats assoc fmtones [-a -b c 0 d  e])
+(swap! live-pats assoc fmtones [0])
 
+(defsynth fmreverb [mix 8.85 room 0.6 damp 0.1]
+  (out 0 (free-verb (in-feedback bus4 2) mix room damp)))
+
+(def fmreverb-ctrl (fmreverb))
+(ctl fmreverb-ctrl :room 0.84)
+(ctl fmreverb-ctrl :mix (ranged-rand 0.1 0.8))
+(ctl fmreverb-ctrl :damp 0.4)
+
+(defsynth fmfilter [cutoff (ranged-rand 500 8000) res 0.8]
+  (out 6 (rlpf (in-feedback out-bus 4 2) cutoff res)))
+(def fmfilter-ctrl (fmfilter))
+(ctl fmfilter-ctrl :cutoff (ranged-rand 200 5000))
 ;  pulse, p-sin-grain, v-osc (clean), lf-par, var-saw
 ;  Chaos  ()
 ;  Line   (amp-comp, amp-comp-a, k2a, line )
@@ -239,3 +254,4 @@
 (inst-pan! c-hat 0.5)
 
 ;;(stop)
+(midi-connected-divices)
