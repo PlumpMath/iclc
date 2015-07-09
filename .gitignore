@@ -17,3 +17,5 @@ pom.xml.asc
 src/iclc/.#core.clj
 
 src/kaos/.#live.clj
+
+src/bohrbug/.#core.clj

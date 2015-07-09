@@ -55,3 +55,7 @@
   :middleware [m/fun-mode]
 
   )
+
+;;monomestuff
+;; long live the source https://github.com/samaaron/polynome/blob/master/src/polynome/core.clj
+(range 0 (int  (* 8 0.5)))
