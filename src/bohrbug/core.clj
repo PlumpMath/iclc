@@ -43,7 +43,7 @@
 
 
 
-(definst kickA [freq 105 dur 1.2 width 0.5 amp -20 out-bus 0]
+(definst kickA [freq 105 dur 1.2 width 0.5 amp -20 out-bus bus1]
   (let [freq-env (* freq (env-gen (perc 0.02 (* 0.49 dur))))
         env (env-gen (perc 0.019 dur) 1 1 0 1 FREE)
         sqr (* (env-gen (perc 0 0.0800)) (pulse (* 2 freq) width))
@@ -61,7 +61,7 @@
 
 
 
-(definst snareA [freq 200 dur 0.20 width 0.5 pan 0.5 amp -1.0]
+(definst snareA [freq 200 dur 0.20 width 0.5 pan 0.5 amp -1.0 out-bus bus2 ]
   (let [freq-env (* freq (env-gen (perc -0.4 (* 0.24 dur))))
         env (env-gen (perc 0.006 dur) 1 1 0 1 FREE)
         noise (white-noise)
@@ -76,10 +76,11 @@
         (compander drum drum 0.4 1 0.02 0.01 0.01)
     ))
 
-;;(swap! live-pats assoc snareA [0 0 0 0])
-;;(swap! live-pats assoc fmtones [0 0 1 1 1 0 0 1 0 0 0 0 0 0 1 0])
+;<<<<<<< Updated upstream
 
-(definst c-hat [amp 0.7 t 0.03]
+;>>>>>>> Stashed changes
+
+(definst c-hat [amp 0.7 t 0.03 out-bus bus3]
   (let [env (env-gen (perc 0.001 t) 1 1 0 1 FREE)
              noise (white-noise)
              sqr (* (env-gen (perc 0.07 0.04)) (pulse 880 0.8))
@@ -90,13 +91,7 @@
 
 
 
-
-
-
-
-
-
-(defsynth fmchord [carrier 440 divisor 4.0 depth 2.0 out-bus 0]
+(defsynth fmchord [carrier 440 divisor 4.0 depth 2.0 out-bus bus5]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin 1.9 3.8 -2.8))
         amp-env (env-gen (lin 1 0 4.0 1) :action FREE)
@@ -118,12 +113,11 @@
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
         amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
-        filt (lpf (+ carrier modulator ) 100)
+        filt (glitch-rhpf (+ carrier modulator ) 100)
              ]
       (out out-bus (pan2 (* 0.60 amp-env
                           (lf-saw (+ carrier
                                      (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
-
 
 
 
@@ -144,9 +138,9 @@
 
 
 (def pats {
-           c-hat  [0 0 0 0 0 0]
-           snareA [0 0 0 0 0 0 0 0]
-           kickA  [ 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+           c-hat  [0 0 0 0]
+           snareA [0 0 0 0]
+           kickA  [0 0 0 0]
            fmchord [0]
            fmtones   [0]
 
@@ -240,16 +234,9 @@
 (def metro (metronome 150))
 (metro 150)
 
-(swap! live-pats assoc fmtones [1 0 0 0 0 0 0 0 0 0 0 0])
 
 
 
-
-
-(midi-connected-devices)
-(midi-connected-receivers)
-
-(inst-volume! kickA 1.5)
 
 ;(inst-volume! c-hat 0.75)
 ;(inst-volume! snareA 1.00)
@@ -257,16 +244,3 @@
 (inst-pan! c-hat 0.5)
 
 ;;(stop)
-
-
-(swap! live-pats assoc snareA [0 0 0 1])
-;;(swap! live-pats assoc fmtones [0 0 1 1 1 0 0 1 0 0 0 0 0 0 1 0])
-
-
-
-;(fx-freeverb 0 0.5 0.9 0.5)
-;(fx-freeverb 1 0.5 0.9 0.5)
-;; (fx-bitcrusher 0.04)
-;(fx-limiter)
-
-;(kill fx-limiter)
