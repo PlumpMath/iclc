@@ -18,8 +18,8 @@
 (defonce bus5 (audio-bus))
 
 
-
-
+;(swap! live-pats assoc kickA [1 0 0 0])
+;(swap! live-pats assoc fmtones [-a -b c 0 d  e])
 
 ;; Define a synth we can use to tap into the stereo out.
 (defsynth tapper
