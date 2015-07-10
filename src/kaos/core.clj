@@ -29,7 +29,7 @@
 )
 (defn update [state]
   {
-  ;:fm @(:left fmtonestaps)
+  :fm @(:left fmtonestaps)
   :mod16 (mod16)
    }
   ;; (updateM)

@@ -18,8 +18,8 @@
 (defonce bus5 (audio-bus))
 
 
-;(swap! live-pats assoc kickA [1 0 0 0])
-;(swap! live-pats assoc fmtones [-a -b c 0 d  e])
+(swap! live-pats assoc kickA [1 0 0 0])
+(swap! live-pats assoc fmtones [-a -b c 0 d  e])
 
 ;; Define a synth we can use to tap into the stereo out.
 (defsynth tapper
@@ -32,13 +32,20 @@
     (tap :right 10 right)
     (tap :phase 10 (- left right))))
 
-
+(volume 0)
 (def fmtonestaps (:taps (tapper 0)))
 @(:left fmtonestaps )
 @(:right fmtonestaps )
 @(:phase fmtonestaps )
 
+(def bus3tap (:taps (tapper 1)))
+@(:left bus3tap)
 
+(swap! live-pats assoc kickA [0 0 ])
+(swap! live-pats assoc fmchord [0 0 0 0 0 0 0 0 0 0 ])
+(swap! live-pats assoc snareA [0 0 0 0 0 0 0 0 0 0 ])
+(swap! live-pats assoc fmtones [1 0 0 0 0 0 0 0])
+(volume 1)
 
 
 
@@ -74,7 +81,7 @@
         (compander drum drum 0.4 1 0.02 0.01 0.01)
     ))
 
-;>>>>>>> Stashed changes
+
 
 (definst c-hat [amp 0.7 t 0.03 out-bus 0]
   (let [env (env-gen (perc 0.001 t) 1 1 0 1 FREE)
@@ -103,17 +110,20 @@
   (out 0 (free-verb (in-feedback bus2 2) mix room damp)))
 
 (def chordreverb-ctrl (chordreverb))
-
+(volume 0)
 
 (defsynth fmtones [carrier 440 divisor 8.0 depth 8.0 out-bus 4]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
         amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
         filt (glitch-rhpf (+ carrier modulator ) 100)
-             ]
+        ]
+ ;     (tap:kr "filter" 60 filt)
       (out out-bus (pan2 (* 0.60 amp-env
                           (lf-saw (+ carrier
                                      (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
+
+;@(get-in @fmtones [:taps "filter"])
 
 
 ;  pulse, p-sin-grain, v-osc (clean), lf-par, var-saw
