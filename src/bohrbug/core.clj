@@ -18,10 +18,11 @@
 (defonce bus5 (audio-bus))
 
 
-(swap! live-pats assoc kickA [1 0 0 0])
-(swap! live-pats assoc fmtones [-a -b c 0 d  e])
+;(swap! live-pats assoc kickA [1 0 0 0])
+;(swap! live-pats assoc fmtones [-a -b c 0 d  e])
 
 ;; Define a synth we can use to tap into the stereo out.
+
 (defsynth tapper
   "Tap into a stereo bus. Provides 3 taps: left, right, and phase."
   [bus 0]
@@ -41,10 +42,10 @@
 (def bus3tap (:taps (tapper 1)))
 @(:left bus3tap)
 
-(swap! live-pats assoc kickA [0 0 ])
-(swap! live-pats assoc fmchord [0 0 0 0 0 0 0 0 0 0 ])
-(swap! live-pats assoc snareA [0 0 0 0 0 0 0 0 0 0 ])
-(swap! live-pats assoc fmtones [1 0 0 0 0 0 0 0])
+(swap! live-pats assoc kickA [1 0 0 0])
+;(swap! live-pats assoc fmchord [0 0 1 0 0 a b c 0 0 0 0 ])
+;(swap! live-pats assoc snareA [0 0 0 0 0 0 0 0 0 0 ])
+;(swap! live-pats assoc fmtones [1 0 1  0 0 0 0 0])
 (volume 1)
 
 
@@ -58,8 +59,11 @@
         src2 (sin-osc-fb freq-env)
         filt (lpf (+ sqr src src2) 100)
         drum (+ sqr (* env filt))]
-        (compander drum drum 0.2 1 0.1 0.01 0.01)
-        ))
+
+    (compander drum drum 0.2 1 0.1 0.01 0.01)
+
+    ))
+
 
 
 
@@ -117,13 +121,14 @@
         mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
         amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
         filt (glitch-rhpf (+ carrier modulator ) 100)
+;        _  (tap :filter 60 filt)
         ]
- ;     (tap:kr "filter" 60 filt)
+;      (tap :kick 60  (lf-saw 60))
       (out out-bus (pan2 (* 0.60 amp-env
                           (lf-saw (+ carrier
                                      (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
 
-;@(get-in @fmtones [:taps "filter"])
+;@(get-in @fmtones [:taps :kick])
 
 
 ;  pulse, p-sin-grain, v-osc (clean), lf-par, var-saw
@@ -214,12 +219,12 @@
 
 (def live-pats (atom pats))
 
-
+(def bbeat (atom 1))
 (defn live-sequencer
   ([curr-t sep-t live-patterns] (live-sequencer curr-t sep-t live-patterns 0))
   ([curr-t sep-t live-patterns beat]
      (doseq [[sound pattern] @live-patterns
-             :let [v (nth pattern (mod beat (count pattern)))
+             :let [v (nth pattern (mod @bbeat (count pattern)))
                    v (cond
                       (= 1 v)
                       []
@@ -232,14 +237,22 @@
              :when v]
        (at curr-t (apply sound v)))
      (let [new-t (+ curr-t sep-t)]
-       (apply-by new-t #'live-sequencer [new-t sep-t live-patterns (inc beat)]))))
+       (apply-by new-t #'live-sequencer [new-t sep-t live-patterns (swap! bbeat inc)])
+                                        ;(println beat)
+       ;(swap! outsidebeat beat)
+       (if (= 0 (mod  @bbeat 4))
+         (println @bbeat))
+
+       )))
+
+
 
 (live-sequencer (now) 100 live-pats)
 
-(def metro (metronome 150))
-(metro 150)
+;;(def metro (metronome 150))
+;;(metro 150)
 
-
+;( println beat)
 
 
 

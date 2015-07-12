@@ -3,7 +3,12 @@
             [quil.middleware :as m]
             )
   (:use [clojure.core.match :only [match]])
-  (:require [polynome.core :as poly]))
+  (:require [polynome.core :as poly])
+  (:require [newtonian.particle-system :as newt]
+            [newtonian.utils :as utils]
+            [newtonian.kaosnewt :as kn])
+  (:import newtonian.utils.Vector2D)
+  )
 
 
 
@@ -28,19 +33,29 @@
   (q/frame-rate 30)
 )
 (defn update [state]
+  (newt/add-new-particles)
+  (newt/update-particles width height)
   {
-  :fm @(:left fmtonestaps)
+  ;:fm @(:left fmtonestaps)
   :mod16 (mod16)
    }
   ;; (updateM)
   )
 
+(defn drawP [state]
+  (let [particles @newt/particles]
+    ( doseq [p particles]
+      (kn/draw-particle p state)))
+  )
 
 
 (defn draw [state]
+ ; (kn/drawP state)
   (q/background 255 255 0)
   (q/with-translation [ (+ 100 (* 10 (mod16))) 100 0]
-    (q/box (* (:fm state)  100)))
+   ; (q/box (* (:fm state)  100))
+    (q/box 50)
+    )
  )
 
 (q/defsketch halic

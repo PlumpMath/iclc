@@ -29,4 +29,6 @@
 (defn mod4 []
 
 
-  (int (/ (mod16) 4)))
+  (int (/ n
+
+          (mod16) 4)))

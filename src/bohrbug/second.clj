@@ -17,7 +17,7 @@
 (defonce bus4 (audio-bus)) ;;fmtones
 (defonce bus5 (audio-bus))
 
-(midi-connected-divices)
+;(midi-connected-divices)
 
 
 
@@ -50,7 +50,9 @@
         src (sin-osc freq-env)
         src2 (sin-osc-fb freq-env)
         filt (lpf (+ sqr src src2) 100)
-        drum (+ sqr (* env filt))]
+        drum (+ sqr (* env filt))
+        _ (tap:kr :kick 60  drum)
+        ]
         (compander drum drum 0.2 1 0.1 0.01 0.01)
         ))
 
@@ -86,7 +88,7 @@
              (* amp env filt)
     ))
 
-(stop)
+;(stop)
 
 (defsynth fmchord [carrier 440 divisor 4.0 depth 2.0 out-bus 5]
   (let [modulator (/ carrier divisor)
@@ -116,8 +118,8 @@
                           (lf-saw (+ carrier
                                      (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
 
-(swap! live-pats assoc fmtones [-a -b c 0 d  e])
-(swap! live-pats assoc fmtones [0])
+;(swap! live-pats assoc fmtones [-a -b c 0 d  e])
+;(swap! live-pats assoc fmtones [0])
 
 (defsynth fmreverb [mix 8.85 room 0.6 damp 0.1]
   (out 0 (free-verb (in-feedback bus4 2) mix room damp)))
@@ -144,7 +146,7 @@
 ;
 
 
-
+(out-bus)
 
 
 (def pats {
