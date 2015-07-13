@@ -35,7 +35,7 @@
     (tap :right 10 right)
     (tap :phase 10 (- left right))))
 
-(volume 0)
+
 (def fmtonestaps (:taps (tapper 0)))
 @(:left fmtonestaps )
 @(:right fmtonestaps )
@@ -116,7 +116,7 @@
   (out 0 (free-verb (in-feedback bus2 2) mix room damp)))
 
 (def chordreverb-ctrl (chordreverb))
-(volume 0)
+
 
 (defsynth fmtones [carrier 440 divisor 8.0 depth 8.0 out-bus 4]
   (let [modulator (/ carrier divisor)
