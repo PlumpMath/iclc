@@ -37,7 +37,7 @@
   (newt/update-particles width height)
   {
   ;:fm @(:left fmtonestaps)
-  :mod16 (mod16)
+  :beat @bbeat
    }
   ;; (updateM)
   )
@@ -52,7 +52,7 @@
 (defn draw [state]
  ; (kn/drawP state)
   (q/background 255 255 0)
-  (q/with-translation [ (+ 100 (* 10 (mod16))) 100 0]
+  (q/with-translation [ (+ 100 (* 50 (mod @bbeat 16))) 100 0]
    ; (q/box (* (:fm state)  100))
     (q/box 50)
     )

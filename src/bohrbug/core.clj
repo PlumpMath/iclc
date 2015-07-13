@@ -42,7 +42,7 @@
 (def bus3tap (:taps (tapper 1)))
 @(:left bus3tap)
 
-(swap! live-pats assoc kickA [1 0 0 0])
+;(swap! live-pats assoc kickA [1 0 0 0])
 ;(swap! live-pats assoc fmchord [0 0 1 0 0 a b c 0 0 0 0 ])
 ;(swap! live-pats assoc snareA [0 0 0 0 0 0 0 0 0 0 ])
 ;(swap! live-pats assoc fmtones [1 0 1  0 0 0 0 0])
@@ -239,9 +239,10 @@
      (let [new-t (+ curr-t sep-t)]
        (apply-by new-t #'live-sequencer [new-t sep-t live-patterns (swap! bbeat inc)])
                                         ;(println beat)
-       ;(swap! outsidebeat beat)
-       (if (= 0 (mod  @bbeat 4))
-         (println @bbeat))
+
+       ;              (if (= 0 (mod @bbeat 4))
+                                        ; (println @bbeat)
+         ;  )
 
        )))
 
