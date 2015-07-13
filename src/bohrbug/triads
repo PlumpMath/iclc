@@ -17,6 +17,9 @@
 (defonce bus5 (audio-bus))
 
 
+(midi-connected-divices)
+
+
 
 ;; Define a synth we can use to tap into the stereo out.
 (defsynth tapper
@@ -39,7 +42,6 @@
 
 
 
-
 (definst kickA [freq 105 dur 1.2 width 0.5 amp -20 out-bus 0]
   (let [freq-env (* freq (env-gen (perc 0.02 (* 0.49 dur))))
         env (env-gen (perc 0.019 dur) 1 1 0 1 FREE)
@@ -47,19 +49,17 @@
         src (sin-osc freq-env)
         src2 (sin-osc-fb freq-env)
         filt (lpf (+ sqr src src2) 100)
-        drum (+ sqr (* env filt))
-        _ (tap:kr :kick 60  drum)
-        ]
+        drum (+ sqr (* env filt))]
         (compander drum drum 0.2 1 0.1 0.01 0.01)
         ))
 
-(swap! live-pats assoc kickA [1 0 0 0 0 0 x 0 0 0 0 0 ])
+(swap! live-pats assoc kickA [1 0 0 0 ])
 
 (def kickdisto (inst-fx! kickA fx-distortion2))
     (ctl kickdisto :amount 0.70)
 (clear-fx kickA)
 
-(definst snareA [freq 200 dur 0.20 width 0.5 pan 0.5 amp -1.0 out-bus 2]
+(definst snareA [freq 200 dur 0.20 width 0.5 pan 0.5 amp -1.0 out-bus 0]
   (let [freq-env (* freq (env-gen (perc -0.4 (* 0.24 dur))))
         env (env-gen (perc 0.006 dur) 1 1 0 1 FREE)
         noise (white-noise)
@@ -84,15 +84,17 @@
        ]
              (* amp env filt)
     ))
+(swap! live-pats assoc c-hat [0 0 1 0])
+(stop)
+(inst-volume! c-hat 0.8)
 
-;(stop)
 
-(defsynth fmchord [carrier 440 divisor 4.0 depth 2.0 out-bus 5]
+(defsynth fmchord [carrier 440 divisor 4.0 depth 2.0 out-bus 6]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin 1.9 3.8 -2.8))
         amp-env (env-gen (lin 1 0 4.0 1) :action FREE)
         filt (rlpf (+ carrier modulator ) 100 0.1)]
-    (out bus2  (pan2 (* 0.15 amp-env
+    (out out-bus  (pan2 (* 0.15 amp-env
                           (sin-osc (+ carrier
                                       (* mod-env (* carrier depth) (sin-osc modulator)))))))
     ))
@@ -124,13 +126,8 @@
                           (lf-par (+ carrier
                                      (* mod-env (* carrier depth) (lf-saw  modulator)))))))))
 
-<<<<<<< Updated upstream
-;(swap! live-pats assoc fmtones [-a -b c 0 d  e])
-;(swap! live-pats assoc fmtones [0])
-=======
 (swap! live-pats assoc fmtones [-a d 0 d f a  0 - b  e])
 (swap! live-pats assoc fmtones [- a -a f f f f 0])
->>>>>>> Stashed changes
 
 (defsynth fmreverb [mix 8.85 room 0.6 damp 0.1]
   (out 0 (free-verb (in-feedback bus4 2) mix room damp)))
@@ -157,7 +154,7 @@
 ;
 
 
-(out-bus)
+
 
 
 (def pats {
@@ -274,6 +271,16 @@
 
 
 (swap! live-pats assoc bass [0])
-(swap! live-pats assoc fmtones [-c 0 -c 0 -c -c -c])
+(swap! live-pats assoc fmtones [-c 0 -c 0 -c -c -c -c 0 -c 0 -c -c -c a c d f])
+(swap! live-pats assoc fmtones [0])
 
 (swap! live-pats assoc kickA [1 0 0 0 0 1])
+
+
+;                               1 - - - 2 - - - 3- - - - 4 - - -
+(swap! live-pats assoc fmchord [a c d 0 0 0 0 0 0 0 0 0 0 0 0 0
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+                                0 0 0 0 0 0 c a f 0 0 0 0 0 0 0
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 ])
+
+(swap! live-pats assoc fmchord [0])
