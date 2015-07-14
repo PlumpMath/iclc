@@ -37,7 +37,14 @@
   (newt/update-particles width height)
   {
   ;:fm @(:left fmtonestaps)
-  :beat @bbeat
+   :beat @bbeat
+   :bus0 @(audio-bus-monitor 0)
+   :bus1 @(audio-bus-monitor 1)
+   :bus2 @(audio-bus-monitor 2)
+   :bus3 @(audio-bus-monitor 3)
+   :bus4 @(audio-bus-monitor 4)
+   :bus5 @(audio-bus-monitor 5)
+
    }
   ;; (updateM)
   )
@@ -74,3 +81,11 @@
 ;;monomestuff
 ;; long live the source https://github.com/samaaron/polynome/blob/master/src/polynome/core.clj
 (range 0 (int  (* 8 0.5)))
+
+
+(get-in @live-pats [c-hat])
+
+;; taps testen
+@(audio-bus-monitor 0)
+
+(ctl fmtones :depth 2.0)

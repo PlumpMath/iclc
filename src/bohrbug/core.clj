@@ -18,38 +18,6 @@
 (defonce bus5 (audio-bus))
 
 
-;(swap! live-pats assoc kickA [1 0 0 0])
-;(swap! live-pats assoc fmtones [-a -b c 0 d  e])
-
-;; Define a synth we can use to tap into the stereo out.
-
-(defsynth tapper
-  "Tap into a stereo bus. Provides 3 taps: left, right, and phase."
-  [bus 0]
-  (let [source (in bus 2)
-        left (select 0 source)
-        right (select 1 source)]
-    (tap :left 10 left)
-    (tap :right 10 right)
-    (tap :phase 10 (- left right))))
-
-(volume 0)
-(def fmtonestaps (:taps (tapper 0)))
-@(:left fmtonestaps )
-@(:right fmtonestaps )
-@(:phase fmtonestaps )
-
-(def bus3tap (:taps (tapper 1)))
-@(:left bus3tap)
-
-;(swap! live-pats assoc kickA [1 0 0 0])
-;(swap! live-pats assoc fmchord [0 0 1 0 0 a b c 0 0 0 0 ])
-;(swap! live-pats assoc snareA [0 0 0 0 0 0 0 0 0 0 ])
-;(swap! live-pats assoc fmtones [1 0 1  0 0 0 0 0])
-(volume 1)
-
-
-
 
 (definst kickA [freq 105 dur 1.2 width 0.5 amp -20 out-bus 0]
   (let [freq-env (* freq (env-gen (perc 0.02 (* 0.49 dur))))
@@ -63,11 +31,6 @@
     (compander drum drum 0.2 1 0.1 0.01 0.01)
 
     ))
-
-
-
-
-
 
 
 (definst snareA [freq 200 dur 0.20 width 0.5 pan 0.5 amp -1.0 out-bus 0]
@@ -114,7 +77,6 @@
   (out 0 (free-verb (in-feedback bus2 2) mix room damp)))
 
 (def chordreverb-ctrl (chordreverb))
-(volume 0)
 
 (defsynth fmtones [carrier 440 divisor 8.0 depth 8.0 out-bus 4]
   (let [modulator (/ carrier divisor)
@@ -128,24 +90,6 @@
                           (lf-saw (+ carrier
                                      (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
 
-;@(get-in @fmtones [:taps :kick])
-
-
-;  pulse, p-sin-grain, v-osc (clean), lf-par, var-saw
-;  Chaos  ()
-;  Line   (amp-comp, amp-comp-a, k2a, line )
-;  Random (rand-seed, lonrenz-trig )
-;  Noise  (lf-noise, hasher , mantissa-mask)
-
-;; (fmtones :depth 8.0)
-;; (fmtones :inst-volume 8.0)
-
-;
-;
-
-
-
-
 
 (def pats {
            c-hat  [0 0 0 0]
@@ -156,10 +100,6 @@
 
 
            })
-
-
-
-
 
 
 ;kick control
@@ -209,8 +149,6 @@
  (def +d {:carrier 1244.51})
 
 
-
-
 ;sequencer
 (defn flatten1
 
@@ -238,28 +176,9 @@
        (at curr-t (apply sound v)))
      (let [new-t (+ curr-t sep-t)]
        (apply-by new-t #'live-sequencer [new-t sep-t live-patterns (swap! bbeat inc)])
-                                        ;(println beat)
-
-       ;              (if (= 0 (mod @bbeat 4))
-                                        ; (println @bbeat)
-         ;  )
-
        )))
 
 
 
 (live-sequencer (now) 100 live-pats)
-
-;;(def metro (metronome 150))
-;;(metro 150)
-
-;( println beat)
-
-
-
-;(inst-volume! c-hat 0.75)
-;(inst-volume! snareA 1.00)
-
 (inst-pan! c-hat 0.5)
-
-;;(stop)

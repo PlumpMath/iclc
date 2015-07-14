@@ -23,3 +23,5 @@ src/bohrbug/.#core.clj
 src/kaos/.#core.clj
 
 src/newtonian/.#kaosnewt.clj
+
+src/bohrbug/.#second.clj
