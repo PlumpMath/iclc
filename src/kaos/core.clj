@@ -86,6 +86,29 @@
 
     (q/box (* 550 @(audio-bus-monitor 0)))))
 
+(defn defaultcam []
+   (q/camera (/ (q/width) 2.0) (/ (q/height) 2.0) (/ (/ (q/height) 2.0) (q/tan (/ (* q/PI 60.0) 360.0))) (/ (q/width) 2.0) (/ (q/height) 2.0) 0 0 1 0)
+)
+
+(defn setcam [x y]
+     (q/camera    (/ (q/width) x)
+                  (/ (q/height) y)
+                  (/ (/ (q/height) 2.0) (q/tan (/ (* q/PI 60.0) 360.0)))
+
+                  (/ (q/width) x)
+                  (/ (q/height) 2.0)
+                  0
+
+                  0
+                  1
+                  0
+                  )
+
+  )
+
+(defn modrandom []
+  (q/random-seed (mod @bbeat 16)))
+
 
 
 (q/defsketch halic
@@ -99,6 +122,10 @@
   :middleware [m/fun-mode]
 
   )
+
+
+
+
 
 ;;monomestuff
 ;; long live the source https://github.com/samaaron/polynome/blob/master/src/polynome/core.clj
