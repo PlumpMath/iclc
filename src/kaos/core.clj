@@ -46,13 +46,16 @@
    :bus5 @(audio-bus-monitor 5)
 
    }
-  ;; (updateM)
+
   )
 
 (defn drawP [state]
   (let [particles @newt/particles]
     ( doseq [p particles]
-      (kn/draw-particle p state)))
+      (kn/draw-particle p state))
+
+    )
+
   )
 
 
@@ -60,14 +63,14 @@
  ; (kn/drawP state)
   (q/background 255 255 0)
   (q/with-translation [ (+ 100 (* 50 (mod @bbeat 16))) 100 0]
-   ; (q/box (* (:fm state)  100))
-    (q/box 50)
-    )
- )
+                                        ; (q/box (* (:fm state)  100))
+
+    (q/box (* 550 @(audio-bus-monitor 0)))))
+
+
 
 (q/defsketch halic
-  :title "halic"
-;;  :size :fullscreen
+  :title "halic";;  :size :fullscreen
   :size [width height]
   ;;:features [:present]
   :setup setup
@@ -83,9 +86,66 @@
 (range 0 (int  (* 8 0.5)))
 
 
-(get-in @live-pats [c-hat])
+
 
 ;; taps testen
-@(audio-bus-monitor 0)
+@(audio-bus-monitor 3 )
 
-(ctl fmtones :depth 2.0)
+;(ctl fmtones :depth 2.0)
+
+
+(map #(or (:carrier %) (:t %) 0)  (get-in @live-pats [fmchord])
+     )
+
+;(count)
+(get-in @live-pats [kickA])
+
+
+(count  (map #(or (:amp %) 0 ) (get-in @live-pats [c-hat])))
+
+
+
+
+
+
+;(setEye [x y z]        (q/camera))
+
+
+
+
+(map #(or (:amp %) 0) (get-in @live-pats [kickA]))
+(nth (get-in @live-pats [kickA])  (mod @bbeat (count (get-in @live-pats [kickA]))))
+
+
+
+
+(def campos {
+             :eye [0 0 0]
+             :center [0 0 500]
+             :up [ 0 1 0 ]
+             })
+
+(def campos { :cam [0 0 0 0 1 1 1 0 ]})
+
+(def live-cam (atom campos))
+(swap! live-cam assoc :eye [0 0 100])
+
+(swap! live-cam assoc  :cam [0 0 0  2 2 2 ])
+
+@live-cam
+
+;(q/camera (flatten  (get @live-cam :cam)))
+
+
+
+( some #(= 1 %)  [0 0])
+
+
+
+
+
+;;notes
+;; seperate drawfunctions per instrument
+;; veel meer via update/state ontsluiten
+
+@(audio-bus-monitor 6)

@@ -1,7 +1,6 @@
 (ns iclc.core
   (:require overtone.core
             overtone.inst.drum
-
             overtone.inst.synth
             overtone.osc.util
             overtone.osc.peer
@@ -16,8 +15,6 @@
 (defonce bus3 (audio-bus))
 (defonce bus4 (audio-bus)) ;;fmtones
 (defonce bus5 (audio-bus))
-
-;(midi-connected-divices)
 
 
 
@@ -56,7 +53,7 @@
         (compander drum drum 0.2 1 0.1 0.01 0.01)
         ))
 
-(swap! live-pats assoc kickA [1 0 0 0])
+(swap! live-pats assoc kickA [1 0 0 0 0 0 x 0 0 0 0 0 ])
 
 (def kickdisto (inst-fx! kickA fx-distortion2))
     (ctl kickdisto :amount 0.70)
@@ -100,7 +97,7 @@
                                       (* mod-env (* carrier depth) (sin-osc modulator)))))))
     ))
 
-
+(stop)
 
 (defsynth chordreverb [mix 0.5 room 0.6 damp 0.1]
   (out 0 (free-verb (in-feedback bus2 2) mix room damp)))
@@ -112,14 +109,28 @@
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
         amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
-        filt (glitch-rhpf (+ carrier modulator ) 100)
+        filt (glitch-rhpf (+ carrier modulator ) 100 2.6)
              ]
       (out out-bus (pan2 (* 0.60 amp-env
                           (lf-saw (+ carrier
                                      (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
+(defsynth bass [carrier 110 divisor 2.0 depth 1.0 out-bus 0]
+  (let [modulator (/ carrier divisor)
+        mod-env (env-gen (lin -0.2 0.04 -2.8))
+        amp-env (env-gen (lin 0 0.3 0.1 1 ) :action FREE)
+        filt (rlpf (+ carrier modulator ) 50)
+             ]
+      (out out-bus (pan2 (* 0.60 amp-env
+                          (lf-par (+ carrier
+                                     (* mod-env (* carrier depth) (lf-saw  modulator)))))))))
 
+<<<<<<< Updated upstream
 ;(swap! live-pats assoc fmtones [-a -b c 0 d  e])
 ;(swap! live-pats assoc fmtones [0])
+=======
+(swap! live-pats assoc fmtones [-a d 0 d f a  0 - b  e])
+(swap! live-pats assoc fmtones [- a -a f f f f 0])
+>>>>>>> Stashed changes
 
 (defsynth fmreverb [mix 8.85 room 0.6 damp 0.1]
   (out 0 (free-verb (in-feedback bus4 2) mix room damp)))
@@ -155,6 +166,7 @@
            kickA  [0 0 0 0]
            fmchord [0]
            fmtones   [0]
+           bass [0]
 
 
            })
@@ -210,7 +222,7 @@
  (def +c {:carrier 1174.66})
  (def +d {:carrier 1244.51})
 
-
+(stop)
 
 
 ;sequencer
@@ -257,3 +269,11 @@
 
 ;;(stop)
 (midi-connected-divices)
+
+(swap! live-pats assoc bass [-a 0 -a 0 -a 0 -a 0 0 0 0 0 0 0 0])
+
+
+(swap! live-pats assoc bass [0])
+(swap! live-pats assoc fmtones [-c 0 -c 0 -c -c -c])
+
+(swap! live-pats assoc kickA [1 0 0 0 0 1])
