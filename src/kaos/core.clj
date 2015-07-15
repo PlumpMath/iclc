@@ -72,7 +72,7 @@
 (q/defsketch halic
   :title "halic";;  :size :fullscreen
   :size [width height]
-  ;;:features [:present]
+  :features [:present]
   :setup setup
   :update update
   :draw draw
