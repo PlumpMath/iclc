@@ -1,6 +1,7 @@
 (ns iclc.core
   (:require [quil.core :as q]
             [quil.middleware :as m]
+            [quil.helpers.seqs :refer [seq->stream range-incl cycle-between steps]]
             )
   (:use [clojure.core.match :only [match]])
   (:require [polynome.core :as poly])
@@ -31,7 +32,13 @@
 ;;start gfxcore, update state
 (defn setup []
   (q/frame-rate 30)
-)
+  )
+
+
+
+
+
+
 (defn update [state]
   (newt/add-new-particles)
   (newt/update-particles width height)
@@ -43,19 +50,17 @@
    :fmtonesbus @(audio-bus-monitor 4)
    :fmchordsbus @(audio-bus-monitor 6)
    :axobus  @(get-in axotapper [:taps :left])
-   :kickA (get (get-in @live-pats [kickA])
-               (mod @bbeat (count (get-in @live-pats [kickA]))))
+   :kickA (getkick)
    :snareA (get (get-in @live-pats [snareA])
                 (mod @bbeat (count (get-in @live-pats [snareA]))))
-   :c-hat (get (get-in @live-pats [c-hat])
-               (mod @bbeat (count (get-in @live-pats [c-hat]))))
+   :c-hat (getchat)
    :fmchord (get (get-in @live-pats [fmchord])
-               (mod @bbeat (count (get-in @live-pats [fmchord]))))
+                 (mod @bbeat (count (get-in @live-pats [fmchord]))))
    :fmtones (nth (map #(or (:carrier %) (:depth %) 0)  (get-in @live-pats [fmtones]))
-               (mod @bbeat (count (get-in @live-pats [fmtones]))))
+                 (mod @bbeat (count (get-in @live-pats [fmtones]))))
    :contra (get (get-in @live-pats [contra])
-               (mod @bbeat (count (get-in @live-pats [contra]))))
-        }
+                (mod @bbeat (count (get-in @live-pats [contra]))))
+   }
 
    )
 
@@ -86,6 +91,14 @@
 
     (q/box (* 550 @(audio-bus-monitor 0)))))
 
+(defn mod16 [] (mod @bbeat 16))
+(defn mod8 [] (mod @bbeat 8))
+(defn mod4 [] (mod @bbeat 4))
+(defn mod2 [] (mod @bbeat 2))
+
+(defn dom16 []
+  (int  (+ 1 mod16)))
+
 (defn defaultcam []
    (q/camera (/ (q/width) 2.0) (/ (q/height) 2.0) (/ (/ (q/height) 2.0) (q/tan (/ (* q/PI 60.0) 360.0))) (/ (q/width) 2.0) (/ (q/height) 2.0) 0 0 1 0)
 )
@@ -109,6 +122,31 @@
 (defn modrandom []
   (q/random-seed (mod @bbeat 16)))
 
+(def tr (seq->stream (cycle-between 1 1 16 0.1 15)))
+
+(def pi2tr (seq->stream (cycle-between 0 0  6.28 0.01 0.01)))
+
+(defn getkick []
+  (if (= 0 (get (get-in @live-pats [kickA]) (mod @bbeat (count (get-in @live-pats [kickA])))) )
+    {:amp 0 :dur 0 :freq 0}
+    (if (= 1 (get (get-in @live-pats [kickA]) (mod @bbeat (count (get-in @live-pats [kickA])))) )
+      {:amp -20 :dur 1.2 :freq 105}
+    (get (get-in @live-pats [kickA]) (mod @bbeat (count (get-in @live-pats [kickA]))))
+    )
+ )
+
+  )
+
+(defn getchat []
+  (if (= 0 (get (get-in @live-pats [c-hat]) (mod @bbeat (count (get-in @live-pats [c-hat])))) )
+    {:amp 0}
+    (if (= 1 (get (get-in @live-pats [c-hat]) (mod @bbeat (count (get-in @live-pats [c-hat])))) )
+    {:amp 0.7}
+    (get (get-in @live-pats [c-hat]) (mod @bbeat (count (get-in @live-pats [c-hat]))))
+    )
+ ))
+(swap! live-pats assoc c-hat [0 o p  1 1 1 1])
+(getchat)
 
 
 (q/defsketch halic
