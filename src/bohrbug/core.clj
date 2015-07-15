@@ -110,7 +110,7 @@
 
 
 
-(defsynth bass [carrier 440 divisor 8.0 depth 8.0 out-bus 1]
+(defsynth contra [carrier 440 divisor 8.0 depth 8.0 out-bus 1]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
         amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
@@ -127,7 +127,7 @@
            kickA  [0 0 0 0]
            fmchord [0]
            fmtones   [0]
-           bass [0]
+           contra [0]
 
            })
 
