@@ -38,30 +38,49 @@
   {
   ;:fm @(:left fmtonestaps)
    :beat @bbeat
-   :bus0 @(audio-bus-monitor 0)
-   :bus1 @(audio-bus-monitor 1)
-   :bus2 @(audio-bus-monitor 2)
-   :bus3 @(audio-bus-monitor 3)
-   :bus4 @(audio-bus-monitor 4)
-   :bus5 @(audio-bus-monitor 5)
+   :drumbus @(audio-bus-monitor 0)
+   :contrabus @(audio-bus-monitor 2)
+   :fmtonesbus @(audio-bus-monitor 4)
+   :fmchordsbus @(audio-bus-monitor 6)
+   :axobus  @(get-in axotapper [:taps :left])
+   :kickA (get (get-in @live-pats [kickA])
+               (mod @bbeat (count (get-in @live-pats [kickA]))))
+   :snareA (get (get-in @live-pats [snareA])
+                (mod @bbeat (count (get-in @live-pats [snareA]))))
+   :c-hat (get (get-in @live-pats [c-hat])
+               (mod @bbeat (count (get-in @live-pats [c-hat]))))
+   :fmchord (get (get-in @live-pats [fmchord])
+               (mod @bbeat (count (get-in @live-pats [fmchord]))))
+   :fmtones (nth (map #(or (:carrier %) (:depth %) 0)  (get-in @live-pats [fmtones]))
+               (mod @bbeat (count (get-in @live-pats [fmtones]))))
+   :contra (get (get-in @live-pats [contra])
+               (mod @bbeat (count (get-in @live-pats [contra]))))
+        }
 
-   }
+   )
 
+(defn draw-particle [{:keys [position velocity accel]} state]
+  (let [x (:x position)
+        y (:y position)]
+    (q/with-translation [x y]
+      (q/fill 255  255 255 (* 5000  (:fmchordsbus state)))
+      (q/box 100 100 (* 1000  (:drumbus state)))
+      )
+    )
   )
+
+
 
 (defn drawP [state]
   (let [particles @newt/particles]
     ( doseq [p particles]
       (kn/draw-particle p state))
-
     )
-
   )
-
 
 (defn draw [state]
  ; (kn/drawP state)
-  (q/background 255 255 0)
+  (q/background 25 25 0)
   (q/with-translation [ (+ 100 (* 50 (mod @bbeat 16))) 100 0]
                                         ; (q/box (* (:fm state)  100))
 
@@ -83,18 +102,18 @@
 
 ;;monomestuff
 ;; long live the source https://github.com/samaaron/polynome/blob/master/src/polynome/core.clj
-(range 0 (int  (* 8 0.5)))
+;(range 0 (int  (* 8 0.5)))
 
 
 
 
 ;; taps testen
-@(audio-bus-monitor 3 )
+;@(audio-bus-monitor 3 )
 
 ;(ctl fmtones :depth 2.0)
 
 
-(map #(or (:carrier %) (:t %) 0)  (get-in @live-pats [fmchord])
+(map #(or (:carrier %) (:depth %) 0)  (get-in @live-pats [fmtones])
      )
 
 ;(count)
@@ -108,12 +127,14 @@
 
 
 
+
+
 ;(setEye [x y z]        (q/camera))
 
 
 
 
-(map #(or (:amp %) 0) (get-in @live-pats [kickA]))
+(map #(or (1 %) (:amp %) 0 ) (get-in @live-pats [kickA]))
 (nth (get-in @live-pats [kickA])  (mod @bbeat (count (get-in @live-pats [kickA]))))
 
 
@@ -148,4 +169,4 @@
 ;; seperate drawfunctions per instrument
 ;; veel meer via update/state ontsluiten
 
-@(audio-bus-monitor 6)
+@(audio-bus-monitor 2)
