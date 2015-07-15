@@ -54,8 +54,7 @@
    :snareA (get (get-in @live-pats [snareA])
                 (mod @bbeat (count (get-in @live-pats [snareA]))))
    :c-hat (getchat)
-   :fmchord (get (get-in @live-pats [fmchord])
-                 (mod @bbeat (count (get-in @live-pats [fmchord]))))
+   :fmchord (get  (getchords) :carrier)
    :fmtones (nth (map #(or (:carrier %) (:depth %) 0)  (get-in @live-pats [fmtones]))
                  (mod @bbeat (count (get-in @live-pats [fmtones]))))
    :contra (get (get-in @live-pats [contra])
@@ -144,7 +143,15 @@
     {:amp 0.7}
     (get (get-in @live-pats [c-hat]) (mod @bbeat (count (get-in @live-pats [c-hat]))))
     )
- ))
+    ))
+(defn getchords []
+  (if (= 0 (get (get-in @live-pats [fmchord]) (mod @bbeat (count (get-in @live-pats [fmchord])))) )
+    {:carrier 0}
+    (get (get-in @live-pats [fmchord]) (mod @bbeat (count (get-in @live-pats [fmchord])))))
+  )
+
+(getchords)
+
 (swap! live-pats assoc c-hat [0 o p  1 1 1 1])
 (getchat)
 
