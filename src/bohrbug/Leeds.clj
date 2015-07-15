@@ -70,6 +70,8 @@
 (swap! live-pats assoc snareA [0 0 0 0 1 0 0 0 0 w 0 w 0 0 0 0 v 1 0 0 0 ])
 (swap! live-pats assoc snareA [0])
 
+(inst-volume! snareA 0.5)
+
 (definst c-hat [amp 0.7 t 0.03 out-bus 0]
   (let [env (env-gen (perc 0.001 t) 1 1 0 1 FREE)
              noise (white-noise)
@@ -80,6 +82,9 @@
     ))
 
 (swap! live-pats assoc c-hat [0 0 1 0 0 1 0 0 0 0 0 1 0 0 0 1 0])
+(stop)
+
+
 (defsynth fmchord [carrier 440 divisor 4.0 depth 2.0 out-bus 6]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin 1.9 3.8 -2.8))
@@ -94,12 +99,12 @@
                               ; 1 - - - 2 - - - 3 - - - 4 - - -
 (swap! live-pats assoc fmchord [a c f 0 0 0 0 0 0 0 0 0 0 0 0 0
                                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+                                +a 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
                                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 
 
                                 ]
-
+(swap! live-pats assoc fmchord [0])
 
 
        )
@@ -122,27 +127,28 @@
                           (sin-osc (+ carrier
                                      (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
 
-(swap! live-pats assoc fmtones [-a -c -a  f 0 0 0 0 0 0 0 0 0 0 0 0])
+(swap! live-pats assoc fmtones [-a -c -a 0 0 0 0 0 0 0 0 +d 0 0 g +a])
 (swap! live-pats assoc fmtones [-a -d 0 a b c e f])
 
-(defsynth contra [carrier 440 divisor 8.0 depth 8.0 out-bus 2]
+(defsynth contra [carrier 440 divisor 2.0 depth 2.0 out-bus 2]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
         amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
         filt (glitch-rhpf (+ carrier modulator ) 100 2.6)
              ]
       (out out-bus (pan2 (* 0.60 amp-env
-                          (sin-osc-fb (+ carrier
+                          (sin-osc (+ carrier
                                      (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
 
-
+(swap! live-pats assoc contra [0 0 0 f d e 0 0 k l i j 0 0 0])
+(swap! live-pats assoc contra [0])
 ;  Chaos  ()
 ;  Line   (amp-comp, amp-comp-a, k2a, line )
 ;  Random (rand-seed, lonrenz-trig )
 ;  Noise  (lf-noise, hasher , mantissa-mask)
 
 ;
-
+(stop)
 
 
 
@@ -160,7 +166,7 @@
 (def s {:t 0.18})
 (def t {:amp 1.0})
 
-                                        ;snare control
+ ;snare control
 (def v {:amp -3.0
         })
 (def w {:amp -4.0})
