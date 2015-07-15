@@ -7,7 +7,7 @@
             overtone.osc.dyn-vars
             ))
 
-
+u
 ;; We use the defonce construct to avoid new buses being created and
 ;; assigned accidentally, if the forms get re-evaluated.
 (defonce bus1 (audio-bus))
@@ -15,28 +15,9 @@
 (defonce bus3 (audio-bus))
 (defonce bus4 (audio-bus)) ;;fmtones
 (defonce bus5 (audio-bus))
-
-
-
-;; Define a synth we can use to tap into the stereo out.
-(defsynth tapper
-  "Tap into a stereo bus. Provides 3 taps: left, right, and phase."
-  [bus 0]
-  (let [source (in bus 2)
-        left (select 0 source)
-        right (select 1 source)]
-    (tap :left 10 left)
-    (tap :right 10 right)
-    (tap :phase 10 (- left right))))
-
-
-(def fmtonestaps (:taps (tapper 0)))
-@(:left fmtonestaps )
-@(:right fmtonestaps )
-@(:phase fmtonestaps )
-
-
-
+(defonce bus6 (audio-bus))
+(defonce bus7 (audio-bus))
+(defonce bus8 (audio-bus))
 
 
 
@@ -48,15 +29,17 @@
         src2 (sin-osc-fb freq-env)
         filt (lpf (+ sqr src src2) 100)
         drum (+ sqr (* env filt))
-        _ (tap:kr :kick 60  drum)
         ]
         (compander drum drum 0.2 1 0.1 0.01 0.01)
         ))
 
-(swap! live-pats assoc kickA [1 0 0 0 0 0 x 0 0 0 0 0 ])
+(swap! live-pats assoc kickA [0])
+(swap! live-pats assoc kickA [1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0
+                              ])
+
 
 (def kickdisto (inst-fx! kickA fx-distortion2))
-    (ctl kickdisto :amount 0.70)
+    (ctl kickdisto :amount 0.7)
 (clear-fx kickA)
 
 (definst snareA [freq 200 dur 0.20 width 0.5 pan 0.5 amp -1.0 out-bus 2]
@@ -73,8 +56,8 @@
         ]
         (compander drum drum 0.4 1 0.02 0.01 0.01)
     ))
+(swap! live-pats assoc snareA [0])
 
-;>>>>>>> Stashed changes
 
 (definst c-hat [amp 0.7 t 0.03 out-bus 3]
   (let [env (env-gen (perc 0.001 t) 1 1 0 1 FREE)
@@ -84,19 +67,34 @@
        ]
              (* amp env filt)
     ))
+(swap! live-pats assoc c-hat [1 0])
+                                        ;(stop)
+(swap! live-pats assoc c-hat [1 0 1 p])
 
-;(stop)
-
-(defsynth fmchord [carrier 440 divisor 4.0 depth 2.0 out-bus 5]
+(defsynth fmchord [carrier 440 divisor 4.0 depth 2.0 out-bus 6]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin 1.9 3.8 -2.8))
         amp-env (env-gen (lin 1 0 4.0 1) :action FREE)
         filt (rlpf (+ carrier modulator ) 100 0.1)]
-    (out bus2  (pan2 (* 0.15 amp-env
+    (out out-bus  (pan2 (* 0.15 amp-env
                           (sin-osc (+ carrier
                                       (* mod-env (* carrier depth) (sin-osc modulator)))))))
     ))
 
+
+                              ; 1 - - - 2 - - - 3 - - - 4 - - -
+(swap! live-pats assoc fmchord [-a c e 0 0 0 0 0 0 0 0 0 0 0 0 0
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+
+
+                                ]
+
+
+
+       )
+(swap! live-pats assoc fmchord [0])
 (stop)
 
 (defsynth chordreverb [mix 0.5 room 0.6 damp 0.1]
@@ -105,32 +103,43 @@
 (def chordreverb-ctrl (chordreverb))
 
 
-(defsynth fmtones [carrier 440 divisor 8.0 depth 8.0 out-bus 4]
+(defsynth fmtones [carrier 440 divisor 8.0 depth 8.0 out-bus 5]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
         amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
         filt (glitch-rhpf (+ carrier modulator ) 100 2.6)
              ]
       (out out-bus (pan2 (* 0.60 amp-env
-                          (lf-saw (+ carrier
+                          (sin-osc (+ carrier
                                      (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
-(defsynth bass [carrier 110 divisor 2.0 depth 1.0 out-bus 0]
+
+
+
+(ctl fmtones :depth 2.0)
+(swap! live-pats assoc fmtones [0])
+
+(ctl fmtones :depth 2.0)
+(swap! live-pats assoc fmtones [-a -a 0 0 0 0 0 0  b b 0 0 0 0 0 0 c d e 0])
+(swap! live-pats assoc fmtones [-a -a 0 e e e e e  b b a b c d e f e c d 0])
+(swap! live-pats assoc fmtones [0])
+
+
+
+(swap! live-pats assoc fmtones [0])
+
+
+(defsynth bass [carrier 440 divisor 8.0 depth 8.0 out-bus 1]
   (let [modulator (/ carrier divisor)
-        mod-env (env-gen (lin -0.2 0.04 -2.8))
-        amp-env (env-gen (lin 0 0.3 0.1 1 ) :action FREE)
-        filt (rlpf (+ carrier modulator ) 50)
+        mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
+        amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
+        filt (glitch-rhpf (+ carrier modulator ) 100 2.6)
              ]
       (out out-bus (pan2 (* 0.60 amp-env
-                          (lf-par (+ carrier
-                                     (* mod-env (* carrier depth) (lf-saw  modulator)))))))))
+                          (sin-osc (+ carrier
+                                     (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
+(stop)
 
-<<<<<<< Updated upstream
-;(swap! live-pats assoc fmtones [-a -b c 0 d  e])
-;(swap! live-pats assoc fmtones [0])
-=======
-(swap! live-pats assoc fmtones [-a d 0 d f a  0 - b  e])
-(swap! live-pats assoc fmtones [- a -a f f f f 0])
->>>>>>> Stashed changes
+(swap! live-pats assoc bass [1 1 1 0 0 0 0])
 
 (defsynth fmreverb [mix 8.85 room 0.6 damp 0.1]
   (out 0 (free-verb (in-feedback bus4 2) mix room damp)))
@@ -139,6 +148,7 @@
 (ctl fmreverb-ctrl :room 0.84)
 (ctl fmreverb-ctrl :mix (ranged-rand 0.1 0.8))
 (ctl fmreverb-ctrl :damp 0.4)
+
 
 (defsynth fmfilter [cutoff (ranged-rand 500 8000) res 0.8]
   (out 6 (rlpf (in-feedback out-bus 4 2) cutoff res)))
@@ -186,6 +196,7 @@
 (def o {:amp 0.2})
 (def p {:amp 0.5})
 (def s {:t 0.18})
+(def t {:amp 1.0})
 
 ;fmtones control
  (def -a {:carrier 261.63 :car-freq 261.63})
@@ -270,10 +281,14 @@
 ;;(stop)
 (midi-connected-divices)
 
-(swap! live-pats assoc bass [-a 0 -a 0 -a 0 -a 0 0 0 0 0 0 0 0])
+(swap! live-pats assoc bass [0 0])
 
 
 (swap! live-pats assoc bass [0])
-(swap! live-pats assoc fmtones [-c 0 -c 0 -c -c -c])
+(swap! live-pats assoc fmtones [0 0 0 0])
 
-(swap! live-pats assoc kickA [1 0 0 0 0 1])
+(swap! live-pats assoc kickA [1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 1 0 1 0 0 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 1 0 0 1 1 0 0 1 0 0 1 1 0 0 1 0 0 0 0 1 1 1 1])
+(swap! live-pats assoc kickA [1 0 0 0 0 0 0 0])
+
+
+(stop)
