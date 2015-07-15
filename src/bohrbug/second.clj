@@ -7,7 +7,7 @@
             overtone.osc.dyn-vars
             ))
 
-u
+
 ;; We use the defonce construct to avoid new buses being created and
 ;; assigned accidentally, if the forms get re-evaluated.
 (defonce bus1 (audio-bus))
@@ -34,7 +34,7 @@ u
         ))
 
 (swap! live-pats assoc kickA [0])
-(swap! live-pats assoc kickA [1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0
+(swap! live-pats assoc kickA [1 0 0 0
                               ])
 
 
@@ -167,7 +167,6 @@ u
 ;
 
 
-(out-bus)
 
 
 (def pats {
@@ -233,41 +232,8 @@ u
  (def +c {:carrier 1174.66})
  (def +d {:carrier 1244.51})
 
-(stop)
 
 
-;sequencer
-(defn flatten1
-
-  [m]
-  (reduce (fn [r [arg val]] (cons arg (cons val r))) [] m))
-
-(def live-pats (atom pats))
-
-
-(defn live-sequencer
-  ([curr-t sep-t live-patterns] (live-sequencer curr-t sep-t live-patterns 0))
-  ([curr-t sep-t live-patterns beat]
-     (doseq [[sound pattern] @live-patterns
-             :let [v (nth pattern (mod beat (count pattern)))
-                   v (cond
-                      (= 1 v)
-                      []
-
-                      (map? v)
-                      (flatten1 v)
-
-                      :else
-                      nil)]
-             :when v]
-       (at curr-t (apply sound v)))
-     (let [new-t (+ curr-t sep-t)]
-       (apply-by new-t #'live-sequencer [new-t sep-t live-patterns (inc beat)]))))
-
-(live-sequencer (now) 100 live-pats)
-
-(def metro (metronome 150))
-(metro 150)
 
 
 
