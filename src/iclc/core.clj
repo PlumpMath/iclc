@@ -12,7 +12,7 @@
 
 ;; 1 - connect to supercollider
 
-( connect-external-server superServerIP  superServerPort)
+(Connect-external-server superServerIP  superServerPort)
 
 (defsynth tapper
   []

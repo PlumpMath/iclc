@@ -14,15 +14,6 @@
 
 
 
-;  _ __ ___   ___  _ __   ___  _ __ ___   ___
-; | '_ ` _ \ / _ \| '_ \ / _ \| '_ ` _ \ / _
-; | | | | | | (_) | | | | (_) | | | | | |  __/
-; |_| |_| |_|\___/|_| |_|\___/|_| |_| |_|\___|
-
-
-;;(defonce m (poly/init "/dev/tty.usbserial-m128-121"))
-
-
 (def width 1440)
 (def height 980)
 
@@ -34,8 +25,31 @@
   (q/frame-rate 30)
   )
 
+(defn getkick []
+  (if (= 0 (get (get-in @live-pats [kickA]) (mod @bbeat (count (get-in @live-pats [kickA])))) )
+    {:amp 0 :dur 0 :freq 0}
+    (if (= 1 (get (get-in @live-pats [kickA]) (mod @bbeat (count (get-in @live-pats [kickA])))) )
+      {:amp -20 :dur 1.2 :freq 105}
+    (get (get-in @live-pats [kickA]) (mod @bbeat (count (get-in @live-pats [kickA]))))
+    )
+ )
 
+  )
 
+(defn getchat []
+  (if (= 0 (get (get-in @live-pats [c-hat]) (mod @bbeat (count (get-in @live-pats [c-hat])))) )
+    {:amp 0}
+    (if (= 1 (get (get-in @live-pats [c-hat]) (mod @bbeat (count (get-in @live-pats [c-hat])))) )
+    {:amp 0.7}
+    (get (get-in @live-pats [c-hat]) (mod @bbeat (count (get-in @live-pats [c-hat]))))
+    )
+    ))
+
+(defn getchords []
+  (if (= 0 (get (get-in @live-pats [fmchord]) (mod @bbeat (count (get-in @live-pats [fmchord])))) )
+    {:carrier 0}
+    (get (get-in @live-pats [fmchord]) (mod @bbeat (count (get-in @live-pats [fmchord])))))
+  )
 
 
 
@@ -125,30 +139,10 @@
 
 (def pi2tr (seq->stream (cycle-between 0 0  6.28 0.01 0.01)))
 
-(defn getkick []
-  (if (= 0 (get (get-in @live-pats [kickA]) (mod @bbeat (count (get-in @live-pats [kickA])))) )
-    {:amp 0 :dur 0 :freq 0}
-    (if (= 1 (get (get-in @live-pats [kickA]) (mod @bbeat (count (get-in @live-pats [kickA])))) )
-      {:amp -20 :dur 1.2 :freq 105}
-    (get (get-in @live-pats [kickA]) (mod @bbeat (count (get-in @live-pats [kickA]))))
-    )
- )
 
-  )
 
-(defn getchat []
-  (if (= 0 (get (get-in @live-pats [c-hat]) (mod @bbeat (count (get-in @live-pats [c-hat])))) )
-    {:amp 0}
-    (if (= 1 (get (get-in @live-pats [c-hat]) (mod @bbeat (count (get-in @live-pats [c-hat])))) )
-    {:amp 0.7}
-    (get (get-in @live-pats [c-hat]) (mod @bbeat (count (get-in @live-pats [c-hat]))))
-    )
-    ))
-(defn getchords []
-  (if (= 0 (get (get-in @live-pats [fmchord]) (mod @bbeat (count (get-in @live-pats [fmchord])))) )
-    {:carrier 0}
-    (get (get-in @live-pats [fmchord]) (mod @bbeat (count (get-in @live-pats [fmchord])))))
-  )
+
+
 
 (getchords)
 
