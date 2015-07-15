@@ -1,14 +1,11 @@
 (ns iclc.core
   (:require overtone.core
             overtone.inst.drum
-            overtone.inst.io
             overtone.inst.synth
             overtone.osc.util
             overtone.osc.peer
             overtone.osc.dyn-vars
             ))
-
-
 
 
 ;; We use the defonce construct to avoid new buses being created and
@@ -20,12 +17,11 @@
 (defonce bus5 (audio-bus))
 
 
+(midi-connected-divices)
 
-;(swap! live-pats assoc kickA [1 0 0 0])
-;(swap! live-pats assoc fmtones [-a -b c 0 d  e])
+
 
 ;; Define a synth we can use to tap into the stereo out.
-
 (defsynth tapper
   "Tap into a stereo bus. Provides 3 taps: left, right, and phase."
   [bus 0]
@@ -42,15 +38,6 @@
 @(:right fmtonestaps )
 @(:phase fmtonestaps )
 
-(def bus3tap (:taps (tapper 1)))
-@(:left bus3tap)
-
-;(swap! live-pats assoc kickA [1 0 0 0])
-;(swap! live-pats assoc fmchord [0 0 1 0 0 a b c 0 0 0 0 ])
-;(swap! live-pats assoc snareA [0 0 0 0 0 0 0 0 0 0 ])
-;(swap! live-pats assoc fmtones [1 0 1  0 0 0 0 0])
-(volume 1)
-
 
 
 
@@ -63,11 +50,14 @@
         src2 (sin-osc-fb freq-env)
         filt (lpf (+ sqr src src2) 100)
         drum (+ sqr (* env filt))]
+        (compander drum drum 0.2 1 0.1 0.01 0.01)
+        ))
 
-    (compander drum drum 0.2 1 0.1 0.01 0.01)
+(swap! live-pats assoc kickA [1 0 0 0 ])
 
-    ))
-
+(def kickdisto (inst-fx! kickA fx-distortion2))
+    (ctl kickdisto :amount 0.70)
+(clear-fx kickA)
 
 (definst snareA [freq 200 dur 0.20 width 0.5 pan 0.5 amp -1.0 out-bus 0]
   (let [freq-env (* freq (env-gen (perc -0.4 (* 0.24 dur))))
@@ -84,9 +74,9 @@
         (compander drum drum 0.4 1 0.02 0.01 0.01)
     ))
 
+;>>>>>>> Stashed changes
 
-
-(definst c-hat [amp 0.7 t 0.03 out-bus 0]
+(definst c-hat [amp 0.7 t 0.03 out-bus 3]
   (let [env (env-gen (perc 0.001 t) 1 1 0 1 FREE)
              noise (white-noise)
              sqr (* (env-gen (perc 0.07 0.04)) (pulse 880 0.8))
@@ -94,7 +84,9 @@
        ]
              (* amp env filt)
     ))
-
+(swap! live-pats assoc c-hat [0 0 1 0])
+(stop)
+(inst-volume! c-hat 0.8)
 
 
 (defsynth fmchord [carrier 440 divisor 4.0 depth 2.0 out-bus 6]
@@ -102,12 +94,12 @@
         mod-env (env-gen (lin 1.9 3.8 -2.8))
         amp-env (env-gen (lin 1 0 4.0 1) :action FREE)
         filt (rlpf (+ carrier modulator ) 100 0.1)]
-    (out bus2  (pan2 (* 0.15 amp-env
+    (out out-bus  (pan2 (* 0.15 amp-env
                           (sin-osc (+ carrier
                                       (* mod-env (* carrier depth) (sin-osc modulator)))))))
     ))
 
-
+(stop)
 
 (defsynth chordreverb [mix 0.5 room 0.6 damp 0.1]
   (out 0 (free-verb (in-feedback bus2 2) mix room damp)))
@@ -119,13 +111,50 @@
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
         amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
-        filt (glitch-rhpf (+ carrier modulator ) 100)
-;        _  (tap :filter 60 filt)
-        ]
-;      (tap :kick 60  (lf-saw 60))
+        filt (glitch-rhpf (+ carrier modulator ) 100 2.6)
+             ]
       (out out-bus (pan2 (* 0.60 amp-env
                           (lf-saw (+ carrier
                                      (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
+(defsynth bass [carrier 110 divisor 2.0 depth 1.0 out-bus 0]
+  (let [modulator (/ carrier divisor)
+        mod-env (env-gen (lin -0.2 0.04 -2.8))
+        amp-env (env-gen (lin 0 0.3 0.1 1 ) :action FREE)
+        filt (rlpf (+ carrier modulator ) 50)
+             ]
+      (out out-bus (pan2 (* 0.60 amp-env
+                          (lf-par (+ carrier
+                                     (* mod-env (* carrier depth) (lf-saw  modulator)))))))))
+
+(swap! live-pats assoc fmtones [-a d 0 d f a  0 - b  e])
+(swap! live-pats assoc fmtones [- a -a f f f f 0])
+
+(defsynth fmreverb [mix 8.85 room 0.6 damp 0.1]
+  (out 0 (free-verb (in-feedback bus4 2) mix room damp)))
+
+(def fmreverb-ctrl (fmreverb))
+(ctl fmreverb-ctrl :room 0.84)
+(ctl fmreverb-ctrl :mix (ranged-rand 0.1 0.8))
+(ctl fmreverb-ctrl :damp 0.4)
+
+(defsynth fmfilter [cutoff (ranged-rand 500 8000) res 0.8]
+  (out 6 (rlpf (in-feedback out-bus 4 2) cutoff res)))
+(def fmfilter-ctrl (fmfilter))
+(ctl fmfilter-ctrl :cutoff (ranged-rand 200 5000))
+;  pulse, p-sin-grain, v-osc (clean), lf-par, var-saw
+;  Chaos  ()
+;  Line   (amp-comp, amp-comp-a, k2a, line )
+;  Random (rand-seed, lonrenz-trig )
+;  Noise  (lf-noise, hasher , mantissa-mask)
+
+;; (fmtones :depth 8.0)
+;; (fmtones :inst-volume 8.0)
+
+;
+;
+
+
+
 
 
 (def pats {
@@ -134,9 +163,14 @@
            kickA  [0 0 0 0]
            fmchord [0]
            fmtones   [0]
+           bass [0]
 
 
            })
+
+
+
+
 
 
 ;kick control
@@ -185,6 +219,8 @@
  (def +c {:carrier 1174.66})
  (def +d {:carrier 1244.51})
 
+(stop)
+
 
 ;sequencer
 (defn flatten1
@@ -194,12 +230,12 @@
 
 (def live-pats (atom pats))
 
-(def bbeat (atom 1))
+
 (defn live-sequencer
   ([curr-t sep-t live-patterns] (live-sequencer curr-t sep-t live-patterns 0))
   ([curr-t sep-t live-patterns beat]
      (doseq [[sound pattern] @live-patterns
-             :let [v (nth pattern (mod @bbeat (count pattern)))
+             :let [v (nth pattern (mod beat (count pattern)))
                    v (cond
                       (= 1 v)
                       []
@@ -212,10 +248,39 @@
              :when v]
        (at curr-t (apply sound v)))
      (let [new-t (+ curr-t sep-t)]
-       (apply-by new-t #'live-sequencer [new-t sep-t live-patterns (swap! bbeat inc)])
-       )))
-
-
+       (apply-by new-t #'live-sequencer [new-t sep-t live-patterns (inc beat)]))))
 
 (live-sequencer (now) 100 live-pats)
+
+(def metro (metronome 150))
+(metro 150)
+
+
+
+
+
+;(inst-volume! c-hat 0.75)
+;(inst-volume! snareA 1.00)
+
 (inst-pan! c-hat 0.5)
+
+;;(stop)
+(midi-connected-divices)
+
+(swap! live-pats assoc bass [-a 0 -a 0 -a 0 -a 0 0 0 0 0 0 0 0])
+
+
+(swap! live-pats assoc bass [0])
+(swap! live-pats assoc fmtones [-c 0 -c 0 -c -c -c -c 0 -c 0 -c -c -c a c d f])
+(swap! live-pats assoc fmtones [0])
+
+(swap! live-pats assoc kickA [1 0 0 0 0 1])
+
+
+;                               1 - - - 2 - - - 3- - - - 4 - - -
+(swap! live-pats assoc fmchord [a c d 0 0 0 0 0 0 0 0 0 0 0 0 0
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+                                0 0 0 0 0 0 c a f 0 0 0 0 0 0 0
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 ])
+
+(swap! live-pats assoc fmchord [0])
