@@ -171,6 +171,42 @@
 
 
 
+                                        ;sequencer
+(defn flatten1
+
+  [m]
+  (reduce (fn [r [arg val]] (cons arg (cons val r))) [] m))
+
+(def live-pats (atom pats))
+
+(def bbeat (atom 1))
+(defn live-sequencer
+  ([curr-t sep-t live-patterns] (live-sequencer curr-t sep-t live-patterns 0))
+  ([curr-t sep-t live-patterns beat]
+   (doseq [[sound pattern] @live-patterns
+           :let [v (nth pattern (mod @bbeat (count pattern)))
+                 v (cond
+                    (= 1 v)
+                    []
+
+                    (map? v)
+                    (flatten1 v)
+
+                    :else
+                    nil)]
+           :when v]
+     (at curr-t (apply sound v)))
+   (let [new-t (+ curr-t sep-t)]
+     (apply-by new-t #'live-sequencer [new-t sep-t live-patterns (swap! bbeat inc)])
+
+     )))
+
+
+
+(live-sequencer (now) 100 live-pats)
+
+
+
 
 
 
