@@ -9,26 +9,11 @@
             ))
 
 
-
-
-
-
-
-;; We use the defonce construct to avoid new buses being created and
-;; assigned accidentally, if the forms get re-evaluated.
 (defonce bus1 (audio-bus))
 (defonce bus2 (audio-bus))
 (defonce bus3 (audio-bus))
-(defonce bus4 (audio-bus)) ;;fmtones
+(defonce bus4 (audio-bus))
 (defonce bus5 (audio-bus))
-
-
-;(swap! live-pats assoc kickA [1 0 0 0])
-;(swap! live-pats assoc fmtones [-a -b c 0 d  e])
-
-;; Define a synth we can use to tap into the stereo out.
-
-
 
 
 (definst kickA [freq 105 dur 1.2 width 0.5 amp -20 out-bus 0]
@@ -43,9 +28,6 @@
     (compander drum drum 0.2 1 0.1 0.01 0.01)
 
     ))
-
-
-
 
 
 
@@ -83,7 +65,7 @@
         mod-env (env-gen (lin 1.9 3.8 -2.8))
         amp-env (env-gen (lin 1 0 4.0 1) :action FREE)
         filt (rlpf (+ carrier modulator ) 100 0.1)]
-    (out bus2  (pan2 (* 0.15 amp-env
+    (out out-bus (pan2 (* 0.15 amp-env
                           (sin-osc (+ carrier
                                       (* mod-env (* carrier depth) (sin-osc modulator)))))))
     ))
@@ -110,7 +92,9 @@
 
 
 
-(defsynth contra [carrier 440 divisor 8.0 depth 8.0 out-bus 1]
+
+
+(defsynth contra [carrier 110 divisor 2.0 depth 8.0 out-bus 2]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
         amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
@@ -118,7 +102,10 @@
              ]
       (out out-bus (pan2 (* 0.60 amp-env
                           (sin-osc (+ carrier
-                                     (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
+                                     (* mod-env (* carrier depth) (formant  modulator)))))))))
+
+
+
 
 
 (def pats {
@@ -185,44 +172,8 @@
 
 
 
-;sequencer
-(defn flatten1
-
-  [m]
-  (reduce (fn [r [arg val]] (cons arg (cons val r))) [] m))
-
-(def live-pats (atom pats))
-
-(def bbeat (atom 1))
-(defn live-sequencer
-  ([curr-t sep-t live-patterns] (live-sequencer curr-t sep-t live-patterns 0))
-  ([curr-t sep-t live-patterns beat]
-     (doseq [[sound pattern] @live-patterns
-             :let [v (nth pattern (mod @bbeat (count pattern)))
-                   v (cond
-                      (= 1 v)
-                      []
-
-                      (map? v)
-                      (flatten1 v)
-
-                      :else
-                      nil)]
-             :when v]
-       (at curr-t (apply sound v)))
-     (let [new-t (+ curr-t sep-t)]
-       (apply-by new-t #'live-sequencer [new-t sep-t live-patterns (swap! bbeat inc)])
-                                        ;(println beat)
-
-       ;              (if (= 0 (mod @bbeat 4))
-                                        ; (println @bbeat)
-         ;  )
-
-       )))
 
 
-
-(live-sequencer (now) 100 live-pats)
 
 
 (inst-pan! c-hat 0.5)

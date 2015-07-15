@@ -8,12 +8,10 @@
             ))
 
 
-;; We use the defonce construct to avoid new buses being created and
-;; assigned accidentally, if the forms get re-evaluated.
 (defonce bus1 (audio-bus))
 (defonce bus2 (audio-bus))
 (defonce bus3 (audio-bus))
-(defonce bus4 (audio-bus)) ;;fmtones
+(defonce bus4 (audio-bus))
 (defonce bus5 (audio-bus))
 (defonce bus6 (audio-bus))
 (defonce bus7 (audio-bus))
@@ -33,19 +31,28 @@
         (compander drum drum 0.2 1 0.1 0.01 0.01)
         ))
 
-(swap! live-pats assoc kickA [0])
-(swap! live-pats assoc kickA [1 0 0 0
-                              ])
 
 
 (def kickdisto (inst-fx! kickA fx-distortion2))
-    (ctl kickdisto :amount 0.7)
+    (ctl kickdisto :amount 0.70)
+
+
+(def kickcompress (inst-fx! kickA fx-compressor))
+    (ctl kickcompress :amount 0.10)
+(def kickChorus (inst-fx! kickA fx-chorus))
+     (ctl kickChorus :rate 0.2 :depth 0.4)
+(def kickfilter (inst-fx! kickA fx-rlpf))
+    (ctl kickfilter :cutoff (ranged-rand 200 7000) :res 0.8)
+
+
 (clear-fx kickA)
 
-(definst snareA [freq 200 dur 0.20 width 0.5 pan 0.5 amp -1.0 out-bus 2]
+
+
+(definst snareA [freq 200 dur 0.20 width 0.5 pan 0.5 amp -1.0 out-bus 0]
   (let [freq-env (* freq (env-gen (perc -0.4 (* 0.24 dur))))
         env (env-gen (perc 0.006 dur) 1 1 0 1 FREE)
-        noise (white-noise)
+        noise (pink-noise)
         sqr (* (env-gen (perc 0 0.04)) (pulse (* 2.9 freq) width))
         src (sin-osc freq-env)
         src2 (sin-osc freq-env)
@@ -56,7 +63,6 @@
         ]
         (compander drum drum 0.4 1 0.02 0.01 0.01)
     ))
-(swap! live-pats assoc snareA [0])
 
 
 (definst c-hat [amp 0.7 t 0.03 out-bus 3]
@@ -67,9 +73,7 @@
        ]
              (* amp env filt)
     ))
-(swap! live-pats assoc c-hat [1 0])
-                                        ;(stop)
-(swap! live-pats assoc c-hat [1 0 1 p])
+
 
 (defsynth fmchord [carrier 440 divisor 4.0 depth 2.0 out-bus 6]
   (let [modulator (/ carrier divisor)
@@ -83,7 +87,7 @@
 
 
                               ; 1 - - - 2 - - - 3 - - - 4 - - -
-(swap! live-pats assoc fmchord [-a c e 0 0 0 0 0 0 0 0 0 0 0 0 0
+(swap! live-pats assoc fmchord [a c f 0 0 0 0 0 0 0 0 0 0 0 0 0
                                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
                                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
                                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
@@ -103,7 +107,7 @@
 (def chordreverb-ctrl (chordreverb))
 
 
-(defsynth fmtones [carrier 440 divisor 8.0 depth 8.0 out-bus 5]
+(defsynth fmtones [carrier 440 divisor 8.0 depth 8.0 out-bus 6]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
         amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
@@ -115,71 +119,23 @@
 
 
 
-(ctl fmtones :depth 2.0)
-(swap! live-pats assoc fmtones [0])
-
-(ctl fmtones :depth 2.0)
-(swap! live-pats assoc fmtones [-a -a 0 0 0 0 0 0  b b 0 0 0 0 0 0 c d e 0])
-(swap! live-pats assoc fmtones [-a -a 0 e e e e e  b b a b c d e f e c d 0])
-(swap! live-pats assoc fmtones [0])
-
-
-
-(swap! live-pats assoc fmtones [0])
-
-
-(defsynth bass [carrier 440 divisor 8.0 depth 8.0 out-bus 1]
+(defsynth contra [carrier 440 divisor 8.0 depth 8.0 out-bus 0]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
         amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
         filt (glitch-rhpf (+ carrier modulator ) 100 2.6)
              ]
       (out out-bus (pan2 (* 0.60 amp-env
-                          (sin-osc (+ carrier
+                          (sin-osc-fb (+ carrier
                                      (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
-(stop)
-
-(swap! live-pats assoc bass [1 1 1 0 0 0 0])
-
-(defsynth fmreverb [mix 8.85 room 0.6 damp 0.1]
-  (out 0 (free-verb (in-feedback bus4 2) mix room damp)))
-
-(def fmreverb-ctrl (fmreverb))
-(ctl fmreverb-ctrl :room 0.84)
-(ctl fmreverb-ctrl :mix (ranged-rand 0.1 0.8))
-(ctl fmreverb-ctrl :damp 0.4)
 
 
-(defsynth fmfilter [cutoff (ranged-rand 500 8000) res 0.8]
-  (out 6 (rlpf (in-feedback out-bus 4 2) cutoff res)))
-(def fmfilter-ctrl (fmfilter))
-(ctl fmfilter-ctrl :cutoff (ranged-rand 200 5000))
-;  pulse, p-sin-grain, v-osc (clean), lf-par, var-saw
 ;  Chaos  ()
 ;  Line   (amp-comp, amp-comp-a, k2a, line )
 ;  Random (rand-seed, lonrenz-trig )
 ;  Noise  (lf-noise, hasher , mantissa-mask)
 
-;; (fmtones :depth 8.0)
-;; (fmtones :inst-volume 8.0)
-
 ;
-;
-
-
-
-
-(def pats {
-           c-hat  [0 0 0 0]
-           snareA [0 0 0 0]
-           kickA  [0 0 0 0]
-           fmchord [0]
-           fmtones   [0]
-           bass [0]
-
-
-           })
-
 
 
 
@@ -231,30 +187,3 @@
  (def +b {:carrier 1108.73})
  (def +c {:carrier 1174.66})
  (def +d {:carrier 1244.51})
-
-
-
-
-
-
-
-
-;(inst-volume! c-hat 0.75)
-;(inst-volume! snareA 1.00)
-
-(inst-pan! c-hat 0.5)
-
-;;(stop)
-(midi-connected-divices)
-
-(swap! live-pats assoc bass [0 0])
-
-
-(swap! live-pats assoc bass [0])
-(swap! live-pats assoc fmtones [0 0 0 0])
-
-(swap! live-pats assoc kickA [1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 1 0 1 0 0 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 1 0 0 1 1 0 0 1 0 0 1 1 0 0 1 0 0 0 0 1 1 1 1])
-(swap! live-pats assoc kickA [1 0 0 0 0 0 0 0])
-
-
-(stop)
