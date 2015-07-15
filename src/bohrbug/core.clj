@@ -11,6 +11,9 @@
 
 
 
+
+
+
 ;; We use the defonce construct to avoid new buses being created and
 ;; assigned accidentally, if the forms get re-evaluated.
 (defonce bus1 (audio-bus))
@@ -25,31 +28,6 @@
 ;(swap! live-pats assoc fmtones [-a -b c 0 d  e])
 
 ;; Define a synth we can use to tap into the stereo out.
-
-(defsynth tapper
-  "Tap into a stereo bus. Provides 3 taps: left, right, and phase."
-  [bus 0]
-  (let [source (in bus 2)
-        left (select 0 source)
-        right (select 1 source)]
-    (tap :left 10 left)
-    (tap :right 10 right)
-    (tap :phase 10 (- left right))))
-
-
-(def fmtonestaps (:taps (tapper 0)))
-@(:left fmtonestaps )
-@(:right fmtonestaps )
-@(:phase fmtonestaps )
-
-(def bus3tap (:taps (tapper 1)))
-@(:left bus3tap)
-
-;(swap! live-pats assoc kickA [1 0 0 0])
-;(swap! live-pats assoc fmchord [0 0 1 0 0 a b c 0 0 0 0 ])
-;(swap! live-pats assoc snareA [0 0 0 0 0 0 0 0 0 0 ])
-;(swap! live-pats assoc fmtones [1 0 1  0 0 0 0 0])
-(volume 1)
 
 
 
@@ -218,4 +196,5 @@
 
 
 (live-sequencer (now) 100 live-pats)
+
 (inst-pan! c-hat 0.5)
