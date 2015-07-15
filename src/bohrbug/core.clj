@@ -23,12 +23,10 @@
 (defonce bus5 (audio-bus))
 
 
-
 ;(swap! live-pats assoc kickA [1 0 0 0])
 ;(swap! live-pats assoc fmtones [-a -b c 0 d  e])
 
 ;; Define a synth we can use to tap into the stereo out.
-
 
 
 
@@ -45,6 +43,11 @@
     (compander drum drum 0.2 1 0.1 0.01 0.01)
 
     ))
+
+
+
+
+
 
 
 (definst snareA [freq 200 dur 0.20 width 0.5 pan 0.5 amp -1.0 out-bus 0]
@@ -106,6 +109,18 @@
                                      (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
 
 
+
+(defsynth bass [carrier 440 divisor 8.0 depth 8.0 out-bus 1]
+  (let [modulator (/ carrier divisor)
+        mod-env (env-gen (lin-rand -0.2 0.4 -2.8))
+        amp-env (env-gen (lin 0 -0.2 0.1 1 ) :action FREE)
+        filt (glitch-rhpf (+ carrier modulator ) 100 2.6)
+             ]
+      (out out-bus (pan2 (* 0.60 amp-env
+                          (sin-osc (+ carrier
+                                     (* mod-env (* carrier depth) (sin-osc  modulator)))))))))
+
+
 (def pats {
            c-hat  [0 0 0 0]
            snareA [0 0 0 0]
@@ -115,6 +130,10 @@
            bass [0]
 
            })
+
+
+
+
 
 
 ;kick control
@@ -164,6 +183,8 @@
  (def +d {:carrier 1244.51})
 
 
+
+
 ;sequencer
 (defn flatten1
 
@@ -191,10 +212,17 @@
        (at curr-t (apply sound v)))
      (let [new-t (+ curr-t sep-t)]
        (apply-by new-t #'live-sequencer [new-t sep-t live-patterns (swap! bbeat inc)])
+                                        ;(println beat)
+
+       ;              (if (= 0 (mod @bbeat 4))
+                                        ; (println @bbeat)
+         ;  )
+
        )))
 
 
 
 (live-sequencer (now) 100 live-pats)
+
 
 (inst-pan! c-hat 0.5)
