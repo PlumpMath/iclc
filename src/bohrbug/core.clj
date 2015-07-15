@@ -112,7 +112,7 @@
            kickA  [0 0 0 0]
            fmchord [0]
            fmtones   [0]
-
+           bass [0]
 
            })
 
