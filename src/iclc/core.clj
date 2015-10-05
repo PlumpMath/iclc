@@ -2,6 +2,10 @@
   (:use [overtone.core])
   (:require [quil.core :as q]
             [quil.middleware :as m]
+            [leipzig.live :as live]
+            [leipzig.melody :as melody]
+            [leipzig.scale :as scale]
+            [leipzig.chord :as chord]
             )
   )
 
