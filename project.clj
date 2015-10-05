@@ -6,6 +6,7 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [quil "2.2.6"]
                  [overtone "0.9.1"]
+                 [leipzig "0.9.0"]
 ;;                 [com.rpl/specter "0.5.4"] ;; testing this for filtering
 ;;                  [overtone "0.10-SNAPSHOT"] ;; trying latest snapshot version
 ;;                 [polynome "0.3.0-SNAPSHOT"]
